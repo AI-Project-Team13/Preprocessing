@@ -44,7 +44,9 @@ for count, file in enumerate(tqdm(files, desc='Song: ')):
         
         # Iterate over all the timesteps in the pianoroll, show progress bar
         for timestep in tqdm(range(piano_roll.shape[0]), desc=f'Song{count} - Track{idx}: '):
-            npzdata.inst_class[instType][timestep] = prdata.getInstClassStep(idx, timestep)
+            origin = npzdata.inst_class[instType][timestep]
+            new = prdata.getInstClassStep(idx, timestep)
+            npzdata.inst_class[instType][timestep] = max(origin, new)
             
     # Save the combined tracks data
     np.savez_compressed(dsfile, pianoroll=tracks_data, inst_class=inst_class, genre=genre, key=key, bpm=bpm)
