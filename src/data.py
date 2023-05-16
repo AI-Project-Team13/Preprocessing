@@ -4,7 +4,7 @@ import pypianoroll as pr
 import muspy
 import pandas as pd
 import numpy as np
-from typing import Tuple
+from typing import Tuple, Optional
 from config import INSTCONFIG, GENRECONFIG
 
 
@@ -22,9 +22,10 @@ class PianorollData:
         obj.multitrack = pr.load(path)
         return obj
     
-    def trim(self, ts: int) -> 'PianorollData':
-        for track in self.multitrack.tracks:
-            track.trim(end=ts)
+    def trim(self, ts: Optional[int] = None) -> 'PianorollData':
+        if trim:
+            for track in self.multitrack.tracks:
+                track.trim(end=ts)
 
     def getTrackNum(self) -> int:
         return len(self.multitrack.tracks)
