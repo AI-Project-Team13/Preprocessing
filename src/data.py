@@ -23,7 +23,7 @@ class PianorollData:
         return obj
     
     def trim(self, ts: Optional[int] = None) -> 'PianorollData':
-        if trim:
+        if ts:
             for track in self.multitrack.tracks:
                 track.trim(end=ts)
 
