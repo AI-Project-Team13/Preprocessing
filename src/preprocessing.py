@@ -35,6 +35,7 @@ for count, file in enumerate(tqdm(files, desc='Song: ')):
 
   # get metadata of the pianoroll data
   key = prdata.getKey()
+  continue
   genre = prdata.getGenre(genreFile)
   bpm = prdata.getBPM()
   

@@ -45,6 +45,7 @@ class PianorollData:
         mus = muspy.from_pypianoroll(self.multitrack)
         score = muspy.to_music21(mus)
         key = score.analyze('key')
+        print(key)
         mode = 1 if key.mode == 'major' else -1
         return np.array([(key.sharps + 1) * mode])
     
