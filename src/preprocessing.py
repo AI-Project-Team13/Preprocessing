@@ -34,7 +34,7 @@ for count, file in enumerate(tqdm(files, desc='Song: ')):
   key, genre, bpm = prdata.getMetaData()
 
   # set metadata of npz data
-  npzdata.setMetaData(key, genre, bpm)
+  npzdata.setMetadata(key, genre, bpm)
 
   # Iterate over all the tracks in the multitrack file
   for idx in enumerate(range(prdata.getTrackNum())):
