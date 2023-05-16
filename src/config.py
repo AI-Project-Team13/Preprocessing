@@ -24,9 +24,10 @@ KEYCONFIG = {
     2: ['G', 'Major'],
     3: ['D', 'Major'],
     4: ['A', 'Major'],
-    5: ['B', 'Major'],
-    6: ['F#', 'Major'],
-    7: ['C#', 'Major']
+    5: ['E', 'Major'],
+    6: ['B', 'Major'],
+    7: ['F#', 'Major'],
+    8: ['C#', 'Major']
 }
 
 INSTCONFIG = {

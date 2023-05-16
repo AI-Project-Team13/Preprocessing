@@ -16,6 +16,8 @@ TIMESTEPNUM = None
 for count, file in enumerate(tqdm(files, desc='Song: ')):
   dsfile = Path(dataset_dir) / f"np_{file.with_suffix('.npz').name}"
   if dsfile.exists():
+    npzdata = NpzData.load(dsfile)
+    print(npzdata.genre)
     continue
 
   # Load the pianoroll data file
@@ -26,9 +28,10 @@ for count, file in enumerate(tqdm(files, desc='Song: ')):
 
   # Trim the pianoroll data
   prdata.trim(TIMESTEPNUM)
+  totaltimestep = prdata.getTimestepNum()
 
   # Init numpy array as zeros (which needs fixed length of timestep)
-  npzdata.setTimestepNum(prdata.getTimestepNum())
+  npzdata.setTimestepNum(totaltimestep)
 
   # get metadata of the pianoroll data
   key, genre, bpm = prdata.getMetaData()
@@ -37,16 +40,19 @@ for count, file in enumerate(tqdm(files, desc='Song: ')):
   npzdata.setMetadata(key, genre, bpm)
 
   # Iterate over all the tracks in the multitrack file
-  for idx in enumerate(range(prdata.getTrackNum())):
+  for idx in range(prdata.getTrackNum()):
     # Get some information about the current track
     instType = prdata.getTrackInst(idx)
-    npzdata.pianoroll[idx] = prdata.getPianoroll(idx)
+    
+    tracktimestep = prdata.getTimestepNum(idx)
+    if tracktimestep > 0:
+      npzdata.pianoroll[idx] = prdata.getPianoroll(idx)
 
     # Iterate over all the timesteps in the pianoroll, show progress bar
-    for timestep in tqdm(range(piano_roll.shape[0]), desc=f'Song{count} - Track{idx}: '):
-      origin = npzdata.inst_class[instType][timestep]
+    for timestep in tqdm(range(tracktimestep), desc=f'Song{count} - Track{idx}: '):
+      origin = npzdata.instclass[instType][timestep]
       new = prdata.getInstClassStep(idx, timestep)
-      npzdata.inst_class[instType][timestep] = max(origin, new)
+      npzdata.instclass[instType][timestep] = max(origin, new)
           
   # Save the combined tracks data
   npzdata.save()
