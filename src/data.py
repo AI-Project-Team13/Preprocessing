@@ -19,24 +19,24 @@ class PianorollData:
     @classmethod
     def load(cls, path: PathLike) -> None:
         obj = cls(path)
-        obj.multitrack = pr.load(path).set_resolution(24)
+        obj.multitrack = pr.load(path).set_resolution(12)
+        obj.timesteplen = round(len(obj.multitrack.tempo) / 2)
         return obj
     
     def trim(self, ts: Optional[int] = None) -> 'PianorollData':
         if ts:
             for track in self.multitrack.tracks:
                 track.trim(end=ts)
+                self.timesteplen = min(ts, self.timesteplen)
 
-    def getTrackNum(self) -> int:
+    def getTrackLength(self) -> int:
         return len(self.multitrack.tracks)
     
-    def getTimestepNum(self, idx=None) -> int:
-        if idx:
-            return self.multitrack.tracks[idx].pianoroll.shape[0]
-        return len(self.multitrack.tempo)
+    def getTimestepLength(self, idx) -> int:
+        return self.multitrack.tracks[idx].pianoroll.shape[0]
     
     def getGenre(self, genres: pd.DataFrame) -> np.ndarray:
-        label = genres.loc[name, 'Genre']
+        label = genres.loc[self.name, 'Genre']
         genre = np.zeros(10)
         genre[label] = 1
         return genre
@@ -50,9 +50,6 @@ class PianorollData:
     
     def getBPM(self) -> np.ndarray:
         return np.array([round(self.multitrack.tempo[0])])
-    
-    def getMetaData(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        return self.getGenre(), self.getKey(), self.getBPM()
     
     def getTrackInst(self, idx) -> int:
         track = self.multitrack.tracks[idx]
@@ -75,7 +72,9 @@ class PianorollData:
     
     def getPianoroll(self, idx) -> np.ndarray:
         track = self.multitrack.tracks[idx]
-        return track.pianoroll.T
+        track_data = track.pianoroll.T
+        track_data = np.pad(track_data, ((0, 0), (0, self.timesteplen - track_data.shape[1])), mode='constant')
+        return track_data
 
 
 class NpzData:

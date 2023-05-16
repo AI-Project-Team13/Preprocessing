@@ -28,23 +28,25 @@ for count, file in enumerate(tqdm(files, desc='Song: ')):
 
   # Trim the pianoroll data
   prdata.trim(TIMESTEPNUM)
-  totaltimestep = prdata.getTimestepNum()
+  totaltimestep = prdata.timesteplen
 
   # Init numpy array as zeros (which needs fixed length of timestep)
   npzdata.setTimestepNum(totaltimestep)
 
   # get metadata of the pianoroll data
-  key, genre, bpm = prdata.getMetaData()
-
+  key = prdata.getKey()
+  genre = prdata.getGenre(genreFile)
+  bpm = prdata.getBPM()
+  
   # set metadata of npz data
   npzdata.setMetadata(key, genre, bpm)
 
   # Iterate over all the tracks in the multitrack file
-  for idx in range(prdata.getTrackNum()):
+  for idx in range(prdata.getTrackLength()):
     # Get some information about the current track
     instType = prdata.getTrackInst(idx)
     
-    tracktimestep = prdata.getTimestepNum(idx)
+    tracktimestep = prdata.getTimestepLength(idx)
     if tracktimestep > 0:
       npzdata.pianoroll[idx] = prdata.getPianoroll(idx)
 
