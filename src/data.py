@@ -2,8 +2,10 @@ from os import PathLike
 from pathlib import Path
 import pypianoroll as pr
 import muspy
+import music21
 import pandas as pd
 import numpy as np
+import math
 from typing import Tuple, Optional
 from config import INSTCONFIG, GENRECONFIG
 
@@ -44,10 +46,13 @@ class PianorollData:
     def getKey(self) -> np.ndarray:
         mus = muspy.from_pypianoroll(self.multitrack)
         score = muspy.to_music21(mus)
-        key = score.analyze('key')
-        print(key)
-        mode = 1 if key.mode == 'major' else -1
-        return np.array([(key.sharps + 1) * mode])
+        k: music21.key.Key = score.analyze('key')
+        mode = 1 if k.mode == 'major' else 0
+        tonic = k.tonic if mode == 1 else k.relative.tonic
+        theta = 30 * (music21.pitch.Pitch(tonic).ps - 60)
+        rad = math.pi * theta / 180
+        key = np.array([math.sin(rad), math.cos(rad), mode])
+        return key
     
     def getBPM(self) -> np.ndarray:
         return np.array([round(self.multitrack.tempo[0])])
@@ -89,7 +94,7 @@ class NpzData:
     def setTimestepNum(self, timesteps: int) -> None:
         self.timesteps = timesteps
         self.genre = np.zeros(len(GENRECONFIG))
-        self.key = np.zeros(1)
+        self.key = np.zeros(3)
         self.bpm = np.zeros(1)
         self.instclass = np.zeros((len(INSTCONFIG), timesteps))
         self.pianoroll = np.zeros((17, 128, timesteps))

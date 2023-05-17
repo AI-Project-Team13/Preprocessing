@@ -16,8 +16,6 @@ TIMESTEPNUM = None
 for count, file in enumerate(tqdm(files, desc='Song: ')):
   dsfile = Path(dataset_dir) / f"np_{file.with_suffix('.npz').name}"
   if dsfile.exists():
-    npzdata = NpzData.load(dsfile)
-    print(npzdata.genre)
     continue
 
   # Load the pianoroll data file
@@ -35,7 +33,6 @@ for count, file in enumerate(tqdm(files, desc='Song: ')):
 
   # get metadata of the pianoroll data
   key = prdata.getKey()
-  continue
   genre = prdata.getGenre(genreFile)
   bpm = prdata.getBPM()
   
@@ -52,7 +49,7 @@ for count, file in enumerate(tqdm(files, desc='Song: ')):
       npzdata.pianoroll[idx] = prdata.getPianoroll(idx)
 
     # Iterate over all the timesteps in the pianoroll, show progress bar
-    for timestep in tqdm(range(tracktimestep), desc=f'Song{count} - Track{idx}: '):
+    for timestep in tqdm(range(totaltimestep), desc=f'Song{count} - Track{idx}: '):
       origin = npzdata.instclass[instType][timestep]
       new = prdata.getInstClassStep(idx, timestep)
       npzdata.instclass[instType][timestep] = max(origin, new)

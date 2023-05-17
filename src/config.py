@@ -11,23 +11,19 @@ GENRECONFIG = {
     9: 'Rock_Hard'
 }
 
-KEYCONFIG = {
-    -8: ['A#', 'Minor'],
-    -7: ['D#', 'Minor'],
-    -6: ['G#', 'Minor'],
-    -5: ['C#', 'Minor'],
-    -4: ['F#', 'Minor'],
-    -3: ['B', 'Minor'],
-    -2: ['E', 'Minor'],
-    -1: ['A', 'Minor'],
-    1: ['C', 'Major'],
-    2: ['G', 'Major'],
-    3: ['D', 'Major'],
-    4: ['A', 'Major'],
-    5: ['E', 'Major'],
-    6: ['B', 'Major'],
-    7: ['F#', 'Major'],
-    8: ['C#', 'Major']
+MAJORKEYCONFIG = {
+    0: ['C'],
+    1: ['D-'],
+    2: ['D'],
+    3: ['E-'],
+    4: ['E'],
+    5: ['F'],
+    6: ['G-'],
+    7: ['G'],
+    8: ['A-'],
+    9: ['A'],
+    10: ['B-'],
+    11: ['B'],
 }
 
 INSTCONFIG = {
