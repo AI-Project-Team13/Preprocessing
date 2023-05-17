@@ -22,7 +22,7 @@ class PianorollData:
     def load(cls, path: PathLike) -> None:
         obj = cls(path)
         obj.multitrack = pr.load(path).set_resolution(12)
-        obj.timesteplen = round(len(obj.multitrack.tempo) / 2)
+        obj.timesteplen = round(len(obj.multitrack.tempo + 1) / 2) + 1
         return obj
     
     def trim(self, ts: Optional[int] = None) -> 'PianorollData':

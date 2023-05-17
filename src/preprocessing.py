@@ -49,7 +49,7 @@ for count, file in enumerate(tqdm(files, desc='Song: ')):
       npzdata.pianoroll[idx] = prdata.getPianoroll(idx)
 
     # Iterate over all the timesteps in the pianoroll, show progress bar
-    for timestep in tqdm(range(totaltimestep), desc=f'Song{count} - Track{idx}: '):
+    for timestep in tqdm(range(tracktimestep), desc=f'Song{count} - Track{idx}: '):
       origin = npzdata.instclass[instType][timestep]
       new = prdata.getInstClassStep(idx, timestep)
       npzdata.instclass[instType][timestep] = max(origin, new)
