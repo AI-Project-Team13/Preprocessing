@@ -33,3 +33,24 @@ INSTCONFIG = {
     3: 'Chord',
     4: 'Synths'
 }
+
+
+TRACKCONFIG = (
+    ('Drums', 0),
+    ('Piano', 0),
+    ('Chromatic Percussion', 8),
+    ('Organ', 16),
+    ('Guitar', 24),
+    ('Bass', 32),
+    ('Strings', 40),
+    ('Ensemble', 48),
+    ('Brass', 56),
+    ('Reed', 64),
+    ('Pipe', 72),
+    ('Synth Lead', 80),
+    ('Synth Pad', 88),
+    ('Synth Effects', 96),
+    ('Ethnic', 104),
+    ('Percussive', 112),
+    ('Sound Effects', 120),
+)
