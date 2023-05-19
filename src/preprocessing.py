@@ -26,7 +26,7 @@ for count, file in enumerate(tqdm(files, desc='Song: ')):
 
   # Trim the pianoroll data
   prdata.trim(TIMESTEPNUM)
-  totaltimestep = prdata.timesteplen
+  totaltimestep = len(prdata)
 
   # Init numpy array as zeros (which needs fixed length of timestep)
   npzdata.setTimestepNum(totaltimestep)

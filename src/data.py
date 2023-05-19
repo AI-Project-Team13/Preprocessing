@@ -6,7 +6,7 @@ import music21
 import pandas as pd
 import numpy as np
 import math
-from typing import Tuple, Optional
+from typing import Optional
 from config import INSTCONFIG, GENRECONFIG
 
 
@@ -14,9 +14,13 @@ class PianorollData:
     def __init__(self, path: PathLike) -> None:
         self.path = path
         self.name = Path(path).stem
+        self.timesteplen = 0
 
     def __str__(self) -> str:
         return f'Data of Pianoroll {name}'
+    
+    def __len__(self) -> int:
+        return self.timesteplen
     
     @classmethod
     def load(cls, path: PathLike) -> None:
