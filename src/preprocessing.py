@@ -1,9 +1,6 @@
-import pypianoroll as pr
 from pathlib import Path
-import numpy as np
 import pandas as pd
 from tqdm import trange, tqdm # to see progress bar (not necessary)
-from typing import Tuple, List # type anotation (not necessary)
 from data import PianorollData, NpzData
 
 pianoroll_dir = '../pianoroll'
@@ -32,12 +29,12 @@ for count, file in enumerate(tqdm(files, desc='Song: ')):
   npzdata.setTimestepNum(totaltimestep)
 
   # get metadata of the pianoroll data
-  key = prdata.getKey()
   genre = prdata.getGenre(genreFile)
+  key = prdata.getKey()
   bpm = prdata.getBPM()
   
   # set metadata of npz data
-  npzdata.setMetadata(key, genre, bpm)
+  npzdata.setMetadata(genre, key, bpm)
 
   # Iterate over all the tracks in the multitrack file
   for idx in range(prdata.getTrackLength()):

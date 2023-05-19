@@ -15,15 +15,16 @@ class PianorollData:
         self.path = path
         self.name = Path(path).stem
         self.timesteplen = 0
+        self.multitrack = pr.Multitrack()
 
     def __str__(self) -> str:
-        return f'Data of Pianoroll {name}'
+        return f'Data of Pianoroll {self.name}'
     
     def __len__(self) -> int:
         return self.timesteplen
     
     @classmethod
-    def load(cls, path: PathLike) -> None:
+    def load(cls, path: PathLike) -> "PianorollData":
         obj = cls(path)
         obj.multitrack = pr.load(path).set_resolution(12)
         obj.timesteplen = round(len(obj.multitrack.tempo + 1) / 2) + 1
@@ -133,7 +134,7 @@ class NpzData:
 
 
 if __name__ == '__main__':
-    name = '/mnt/c/Users/Marisa/Documents/skku/4-1/인지프/Project/lpd_17/pianoroll/88221692d3aa1479174c28bcbabbaa41.npz'
+    name = '/mnt/c/Users/Marisa/Documents/skku/4-1/인지프/Project/AIProject/pianoroll/88221692d3aa1479174c28bcbabbaa41.npz'
 
     ds = PianorollData.load(Path(name))
     print(type(ds.multitrack.tracks[-1]))
