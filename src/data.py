@@ -24,7 +24,7 @@ class PianorollData:
         return self.timesteplen
     
     @classmethod
-    def load(cls, path: PathLike) -> "PianorollData":
+    def load(cls, path: PathLike) -> 'PianorollData':
         obj = cls(path)
         obj.multitrack = pr.load(path).set_resolution(12)
         obj.timesteplen = round(len(obj.multitrack.tempo + 1) / 2) + 1
