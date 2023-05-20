@@ -12,8 +12,8 @@ TIMESTEPNUM = None
 # Iterate all files
 for file in tqdm(files, desc='Song: '):
   dsfile = Path(dataset_dir) / f"np_{file.with_suffix('.npz').name}"
-  # if dsfile.exists():
-  #   continue
+  if dsfile.exists():
+    continue
 
   # Load the pianoroll data file
   prdata = PianorollData.load(file)
