@@ -83,7 +83,8 @@ class PianorollData:
     
     def getPianoroll(self, idx) -> np.ndarray:
         track = self.multitrack.tracks[idx]
-        track_data = track.pianoroll.T
+        vfunc = np.vectorize(lambda v: v / 127)
+        track_data = vfunc(track.pianoroll.T)
         track_data = np.pad(track_data, ((0, 0), (0, self.timesteplen - track_data.shape[1])), mode='constant')
         return track_data
 
