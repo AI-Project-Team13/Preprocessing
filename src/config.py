@@ -54,3 +54,5 @@ TRACKCONFIG = (
     ('Percussive', 112),
     ('Sound Effects', 120),
 )
+
+TRACK2INST = [0, 2, 0, 3, 2, 1, 2, 3, 2, 2, 2, 2, 3, 4, 2, 0, 4]
