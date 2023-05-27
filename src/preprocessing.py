@@ -47,9 +47,9 @@ for file in tqdm(files, desc='Song: '):
 
     # Iterate over all the timesteps in the pianoroll, show progress bar
     for timestep in range(tracktimestep):
-      origin = npzdata.instclass[instType][timestep]
+      origin = npzdata.inst_class[instType][timestep]
       new = prdata.getInstClassStep(idx, timestep)
-      npzdata.instclass[instType][timestep] = max(origin, new)
+      npzdata.inst_class[instType][timestep] = max(origin, new)
           
   # Save the combined tracks data
   npzdata.save()

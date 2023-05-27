@@ -102,7 +102,7 @@ class NpzData:
         self.genre = np.zeros(len(GENRECONFIG))
         self.key = np.zeros(3)
         self.bpm = np.zeros(1)
-        self.instclass = np.zeros((len(INSTCONFIG), timesteps))
+        self.inst_class = np.zeros((len(INSTCONFIG), timesteps))
         self.pianoroll = np.zeros((17, 128, timesteps))
 
     def setMetadata(self, genre, key, bpm):
@@ -117,7 +117,7 @@ class NpzData:
         obj.genre = file['genre']
         obj.key = file['key']
         obj.bpm = file['bpm']
-        obj.instclass = file['inst_class']
+        obj.inst_class = file['inst_class']
         obj.pianoroll = file['pianoroll']
         return obj
     
