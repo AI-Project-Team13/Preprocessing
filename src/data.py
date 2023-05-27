@@ -125,7 +125,7 @@ class NpzData:
         np.savez_compressed(
             self.path,
             pianoroll=self.pianoroll,
-            inst_class=self.instclass,
+            inst_class=self.inst_class,
             genre=self.genre,
             key=self.key,
             bpm=self.bpm
