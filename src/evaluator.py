@@ -70,6 +70,19 @@ class TestTaker:
         self.output: np.ndarray = np.any(output != 0, axis=2)  # shape (timesteps, tracks)
         self.name = name
         self.timesteps = self.inst_class.shape[0]
+        self.score: List[Tuple] = None
+    
+    def set_score(self, im_score, ir_score, dp_score):
+        self.score = [im_score, ir_score, dp_score]
+    
+    def print_score(self):
+        print(f'[{self.name} IM Test Score]')
+        print(f'Accuracy: {self.score[0][0]}, Precision: {self.score[0][1]}, Recall: {self.score[0][2]}, F1 Score: {self.score[0][3]}')
+        print(f'\n[{self.name} IR Test Score]')
+        print(f'Accuracy: {self.score[1][0]}, Precision: {self.score[1][1]}, Recall: {self.score[1][2]}, F1 Score: {self.score[1][3]}')
+        print(f'\n[{self.name} DP Test Score]')
+        print(f"Jensen-Shannon Divergence: {self.score[2][0]}, Earth Mover's Distance: {self.score[2][1]}, Cosine Similarity: {self.score[2][2]}")
+
 
 class Evaluator:
     def __init__(self, root: PathLike) -> None:
@@ -81,9 +94,6 @@ class Evaluator:
         self.dp_dir = Path(root) / 'DPTest'
         for test_path in [self.im_dir, self.ir_dir, self.dp_dir]:
             test_path.mkdir(parents=True, exist_ok=True)
-        
-        # Iteration Start
-        self.current = 0
 
         # Result
         self.im_true, self.im_pred, self.ir_true, self.ir_pred = [], [], [], []
@@ -106,7 +116,7 @@ class Evaluator:
         im_score = self.IMTest(taker)
         ir_score = self.IRTest(taker)
         dp_score = self.DPTest(taker)
-        return im_score, ir_score, dp_score
+        taker.set_score(im_score, ir_score, dp_score)
     
     
     def IMTest(self, taker: TestTaker) -> Tuple[float, float, float, float]:
