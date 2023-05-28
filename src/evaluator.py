@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from os import PathLike
 from typing import List, Tuple, Union
 from pathlib import Path
@@ -52,9 +53,9 @@ def plot_det_curve(y_true, y_pred, save_dir: PathLike=None, save=False, show=Fal
     if save: plt.savefig(save_dir / 'Det_Curve.png')
     if show: plt.show()
 
-def plot_distribution(count, save_dir: PathLike=None, save=False, show=False):
-    x = np.arange(1, len(count)+1)
-    plt.bar(x, count)
+def plot_distribution(dist, save_dir: PathLike=None, save=False, show=False):
+    x = np.arange(1, len(dist)+1)
+    plt.bar(x, dist)
     plt.xlabel('Timestep')
     plt.ylabel('Probability')
     plt.xticks(x)
@@ -63,25 +64,59 @@ def plot_distribution(count, save_dir: PathLike=None, save=False, show=False):
     if show: plt.show()
 
 
+
+class ScoreSheet:
+    def __init__(self, im_score, ir_score, dp_score, name='ScoreSheet') -> None:
+        self.im_score = im_score
+        self.ir_score = ir_score
+        self.dp_score = dp_score
+        self.name = name
+        self.sheet = self.make_sheet()
+    
+    def __str__(self) -> str:
+        return str(self.sheet)
+    
+    def make_sheet(self) -> pd.DataFrame:
+        sheet = pd.DataFrame({
+            'Test': [
+                'IM Test', 'IM Test', 'IM Test', 'IM Test',
+                'IR Test', 'IR Test', 'IR Test', 'IR Test',
+                'DP Test', 'DP Test', 'DP Test',
+            ],
+            'Metric': [
+                'Accuracy', 'Precision', 'Recall', 'F1 Score',
+                'Accuracy', 'Precision', 'Recall', 'F1 Score',
+                'Jensen-Shannon Divergence', "Earth Mover's Distance", 'Cosine Similarity',
+            ],
+            'Score': [
+                self.im_score[0], self.im_score[1], self.im_score[2], self.im_score[3],
+                self.ir_score[0], self.ir_score[1], self.ir_score[2], self.ir_score[3],
+                self.dp_score[0], self.dp_score[1], self.dp_score[2],
+            ]
+        })
+        return sheet
+
+    def save(self, save_dir: PathLike):
+        self.sheet.to_csv(Path(save_dir) / f'{self.name}.csv', index=False)
+
+
 class TestTaker:
-    def __init__(self, inst_class: np.ndarray, output: np.ndarray, name=None) -> None:
+    def __init__(self, inst_class: np.ndarray, output: np.ndarray, name='TestTaker') -> None:
         self.inst_class = inst_class.T  # shape (5, timestep) -> (timestep, 5)
-        output = output.transpose(2, 0, 1)  # shape (17, 128, timestep) -> (timestep, 17, 128)
+        output = output.transpose(2, 0, 1)
         self.output: np.ndarray = np.any(output != 0, axis=2)  # shape (timesteps, tracks)
         self.name = name
         self.timesteps = self.inst_class.shape[0]
-        self.score: List[Tuple] = None
+        self.sheet: ScoreSheet = None
     
-    def set_score(self, im_score, ir_score, dp_score):
-        self.score = [im_score, ir_score, dp_score]
-    
+    def grade_score(self, im_score: Tuple, ir_score: Tuple, dp_score: Tuple) -> None:
+        self.sheet = ScoreSheet(im_score, ir_score, dp_score, self.name)
+
     def print_score(self):
-        print(f'[{self.name} IM Test Score]')
-        print(f'Accuracy: {self.score[0][0]}, Precision: {self.score[0][1]}, Recall: {self.score[0][2]}, F1 Score: {self.score[0][3]}')
-        print(f'\n[{self.name} IR Test Score]')
-        print(f'Accuracy: {self.score[1][0]}, Precision: {self.score[1][1]}, Recall: {self.score[1][2]}, F1 Score: {self.score[1][3]}')
-        print(f'\n[{self.name} DP Test Score]')
-        print(f"Jensen-Shannon Divergence: {self.score[2][0]}, Earth Mover's Distance: {self.score[2][1]}, Cosine Similarity: {self.score[2][2]}")
+        print(self.sheet)
+    
+    def save_score(self, save_dir: PathLike):
+        self.sheet.save(save_dir)
 
 
 class Evaluator:
@@ -94,29 +129,40 @@ class Evaluator:
         self.dp_dir = Path(root) / 'DPTest'
         for test_path in [self.im_dir, self.ir_dir, self.dp_dir]:
             test_path.mkdir(parents=True, exist_ok=True)
-
+        
         # Result
         self.im_true, self.im_pred, self.ir_true, self.ir_pred = [], [], [], []
         self.dp_pred = np.zeros(12)
+        self.sheet: ScoreSheet = None
 
-    def calculate_total_score(self) -> Tuple[float, float, float]:
+    def calculate_total_score(self):
         im_score = calculate_score(self.im_true, self.im_pred)
         ir_score = calculate_score(self.ir_true, self.ir_pred)
-        total_sum = np.sum(self.dp_pred)
-        dp_dist = self.dp_pred / total_sum
-        dp_score = calculate_distribution_similarity(DRUMDISTRIBUTION, dp_dist)
+        if self.dp_pred.any():
+            total_sum = np.sum(self.dp_pred)
+            dp_dist = self.dp_pred / total_sum
+            dp_score = calculate_distribution_similarity(DRUMDISTRIBUTION, dp_dist)
+        else:
+            dp_score = (0, 0, 0)
+        self.sheet = ScoreSheet(im_score, ir_score, dp_score, 'Total')
         return im_score, ir_score, dp_score
+
+    def print_total_score(self):
+        print(self.sheet)
     
-    def plot_total(self, save=False, show=False) -> None:
+    def save_total_score(self):
+        self.sheet.save(self.root)
+    
+    def plot_total(self, save=False, show=False):
         self.plot_IMTest(save, show)
         self.plot_IRTest(save, show)
         self.plot_DPTest(save, show)
     
-    def __call__(self, taker: TestTaker) -> Tuple[Tuple, Tuple, Tuple]:
+    def __call__(self, taker: TestTaker):
         im_score = self.IMTest(taker)
         ir_score = self.IRTest(taker)
         dp_score = self.DPTest(taker)
-        taker.set_score(im_score, ir_score, dp_score)
+        taker.grade_score(im_score, ir_score, dp_score)
     
     
     def IMTest(self, taker: TestTaker) -> Tuple[float, float, float, float]:
@@ -164,34 +210,48 @@ class Evaluator:
         Drum Pattern Test
         '''
         drums: np.ndarray = taker.output.T[0]
-        if not drums.any():
-            return None
         dp_pred = np.zeros(12)
-        num_iterations = taker.timesteps // 12
-        for iter in range(num_iterations):
-            beat = drums[iter * 12:(iter + 1) * 12]
-            true_indices = np.where(beat)[0]
-            dp_pred[true_indices] += 1
-        
-        self.dp_pred += dp_pred
-        total_sum = np.sum(dp_pred)
-        dp_dist = dp_pred / total_sum
-        dp_score = calculate_distribution_similarity(DRUMDISTRIBUTION, dp_dist)
+        if drums.any():
+            num_iterations = taker.timesteps // 12
+            for iter in range(num_iterations):
+                beat = drums[iter * 12:(iter + 1) * 12]
+                true_indices = np.where(beat)[0]
+                dp_pred[true_indices] += 1
+                total_sum = np.sum(dp_pred)
+            dp_dist = dp_pred / total_sum
+            dp_score = calculate_distribution_similarity(DRUMDISTRIBUTION, dp_dist)
+            self.dp_pred += dp_pred
+        else:
+            dp_score = (0, 0, 0)
         return dp_score
     
-    def plot_IMTest(self, save=False, show=False) -> None:
+    def safe_plot(func):
+        def wrapper(*args, **kwargs):
+            try:
+                func(*args, **kwargs)
+            except ValueError:
+                pass
+        return wrapper
+    
+    @safe_plot
+    def plot_IMTest(self, save=False, show=False):
         plot_confusion_matrix(self.im_true, self.im_pred, self.im_dir, save, show)
         plot_precision_recall(self.im_true, self.im_pred, self.im_dir, save, show)
         plot_roc_curve(self.im_true, self.im_pred, self.im_dir, save, show)
         plot_det_curve(self.im_true, self.im_pred, self.im_dir, save, show)
     
-    def plot_IRTest(self, save=False, show=False) -> None:
+    @safe_plot
+    def plot_IRTest(self, save=False, show=False):
         plot_confusion_matrix(self.ir_true, self.ir_pred, self.ir_dir, save, show)
         plot_precision_recall(self.ir_true, self.ir_pred, self.ir_dir, save, show)
         plot_roc_curve(self.ir_true, self.ir_pred, self.ir_dir, save, show)
         plot_det_curve(self.ir_true, self.ir_pred, self.ir_dir, save, show)
     
-    def plot_DPTest(self, save, show) -> None:
-        total_sum = np.sum(self.dp_pred)
-        dp_dist = self.dp_pred / total_sum
+    @safe_plot
+    def plot_DPTest(self, save, show):
+        if self.dp_pred.any():
+            total_sum = np.sum(self.dp_pred)
+            dp_dist = self.dp_pred / total_sum
+        else:
+            dp_dist = np.zeros_like(self.dp_pred)
         plot_distribution(dp_dist, self.dp_dir, save, show)
