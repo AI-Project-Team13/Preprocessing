@@ -66,6 +66,7 @@ def plot_distribution(count, save_dir: PathLike=None, save=False, show=False):
 class TestTaker:
     def __init__(self, inst_class: np.ndarray, output: np.ndarray, name=None) -> None:
         self.inst_class = inst_class.T  # shape (5, timestep) -> (timestep, 5)
+        output = output.transpose(2, 0, 1)  # shape (17, 128, timestep) -> (timestep, 17, 128)
         self.output: np.ndarray = np.any(output != 0, axis=2)  # shape (timesteps, tracks)
         self.name = name
         self.timesteps = self.inst_class.shape[0]
