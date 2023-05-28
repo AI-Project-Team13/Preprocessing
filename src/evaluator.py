@@ -63,7 +63,13 @@ def plot_distribution(dist, save_dir: PathLike=None, save=False, show=False):
     if save: plt.savefig(save_dir / 'Distribution.png')
     if show: plt.show()
 
-
+def safe_plot(func):
+    def wrapper(*args, **kwargs):
+        try:
+            func(*args, **kwargs)
+        except ValueError:
+            pass
+    return wrapper
 
 class ScoreSheet:
     def __init__(self, im_score, ir_score, dp_score, name='ScoreSheet') -> None:
@@ -134,37 +140,13 @@ class Evaluator:
         self.im_true, self.im_pred, self.ir_true, self.ir_pred = [], [], [], []
         self.dp_pred = np.zeros(12)
         self.sheet: ScoreSheet = None
-
-    def calculate_total_score(self):
-        im_score = calculate_score(self.im_true, self.im_pred)
-        ir_score = calculate_score(self.ir_true, self.ir_pred)
-        if self.dp_pred.any():
-            total_sum = np.sum(self.dp_pred)
-            dp_dist = self.dp_pred / total_sum
-            dp_score = calculate_distribution_similarity(DRUMDISTRIBUTION, dp_dist)
-        else:
-            dp_score = (0, 0, 0)
-        self.sheet = ScoreSheet(im_score, ir_score, dp_score, 'Total')
-        return im_score, ir_score, dp_score
-
-    def print_total_score(self):
-        print(self.sheet)
-    
-    def save_total_score(self):
-        self.sheet.save(self.root)
-    
-    def plot_total(self, save=False, show=False):
-        self.plot_IMTest(save, show)
-        self.plot_IRTest(save, show)
-        self.plot_DPTest(save, show)
     
     def __call__(self, taker: TestTaker):
         im_score = self.IMTest(taker)
         ir_score = self.IRTest(taker)
         dp_score = self.DPTest(taker)
         taker.grade_score(im_score, ir_score, dp_score)
-    
-    
+
     def IMTest(self, taker: TestTaker) -> Tuple[float, float, float, float]:
         '''
         Input Match Test
@@ -225,13 +207,27 @@ class Evaluator:
             dp_score = (0, 0, 0)
         return dp_score
     
-    def safe_plot(func):
-        def wrapper(*args, **kwargs):
-            try:
-                func(*args, **kwargs)
-            except ValueError:
-                pass
-        return wrapper
+    def calculate_total_score(self):
+        im_score = calculate_score(self.im_true, self.im_pred)
+        ir_score = calculate_score(self.ir_true, self.ir_pred)
+        if self.dp_pred.any():
+            total_sum = np.sum(self.dp_pred)
+            dp_dist = self.dp_pred / total_sum
+            dp_score = calculate_distribution_similarity(DRUMDISTRIBUTION, dp_dist)
+        else:
+            dp_score = (0, 0, 0)
+        self.sheet = ScoreSheet(im_score, ir_score, dp_score, 'Total')
+
+    def print_total_score(self):
+        print(self.sheet)
+    
+    def save_total_score(self):
+        self.sheet.save(self.root)
+    
+    def plot_total(self, save=False, show=False):
+        self.plot_IMTest(save, show)
+        self.plot_IRTest(save, show)
+        self.plot_DPTest(save, show)
     
     @safe_plot
     def plot_IMTest(self, save=False, show=False):
