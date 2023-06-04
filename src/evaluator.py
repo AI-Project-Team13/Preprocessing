@@ -248,14 +248,16 @@ class TestTaker:
 
 
 class Evaluator:
-    def __init__(self, root: PathLike) -> None:
+    def __init__(self, root: PathLike, average='macro') -> None:
         """
         Initializes an Evaluator object.
 
         Args:
             root: Root directory path.
+            average: determines the type of averaging performed on the data when calculate score
         """
         self.root = Path(root)
+        self.average = average
         
         # Result Plot Directory
         self.im_dir = Path(root) / 'IMTest'
@@ -269,26 +271,24 @@ class Evaluator:
         self.dp_pred = np.zeros(12)
         self.sheet: ScoreSheet = None
     
-    def __call__(self, taker: TestTaker, average='macro'):
+    def __call__(self, taker: TestTaker):
         """
         Evaluates a TestTaker object.
 
         Args:
             taker: The TestTaker object to evaluate.
-            average: determines the type of averaging performed on the data when calculate score
         """
-        im_score = self.IMTest(taker, average=average)
+        im_score = self.IMTest(taker)
         ir_score = self.IRTest(taker)
         dp_score = self.DPTest(taker)
         taker.grade_score(im_score, ir_score, dp_score)
 
-    def IMTest(self, taker: TestTaker, average='macro') -> Tuple[float, float, float, float]:
+    def IMTest(self, taker: TestTaker) -> Tuple[float, float, float, float]:
         '''
         Input Match Test
 
         Args:
             taker: The TestTaker object to evaluate.
-            average: determines the type of averaging performed on the data when calculate score
 
         Returns:
             Tuple of IMTest scores: (accuracy, precision, recall, f1_score).
@@ -303,14 +303,14 @@ class Evaluator:
                 inst = TRACK2INST[idx]
                 ori = pred_insts[inst]
                 pred_insts[inst] = max(ori, int(track))
-            if average == 'binary':
+            if self.average == 'binary':
                 y_true.extend(insts)
                 y_pred.extend(pred_insts)
             else:
                 y_true.append(insts)
                 y_pred.append(pred_insts)
         self.im_true.extend(y_true), self.im_pred.extend(y_pred)
-        im_score = calculate_score(y_true, y_pred, average='macro')
+        im_score = calculate_score(y_true, y_pred, self.average)
         return im_score
                 
     
@@ -373,7 +373,7 @@ class Evaluator:
         If drum pattern predictions are available, it calculates the drum pattern score using distribution similarity.
         Creates a ScoreSheet object with the computed scores and assigns it to the `sheet` attribute.
         """
-        im_score = calculate_score(self.im_true, self.im_pred)
+        im_score = calculate_score(self.im_true, self.im_pred, self.average)
         ir_score = calculate_score(self.ir_true, self.ir_pred)
         if self.dp_pred.any():
             total_sum = np.sum(self.dp_pred)
