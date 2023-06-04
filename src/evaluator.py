@@ -1,4 +1,5 @@
 import numpy as np
+from numpy.typing import ArrayLike
 import pandas as pd
 from os import PathLike
 from typing import List, Tuple, Union
@@ -11,7 +12,6 @@ from scipy.spatial.distance import jensenshannon
 from scipy.stats import wasserstein_distance
 import matplotlib.pyplot as plt
 
-ArrayLike = Union[np.ndarray[float], List[float]]
 
 def calculate_score(y_true: ArrayLike, y_pred: ArrayLike) -> Tuple[float, float, float, float]:
     """
@@ -25,9 +25,9 @@ def calculate_score(y_true: ArrayLike, y_pred: ArrayLike) -> Tuple[float, float,
         Tuple of accuracy, precision, recall, and F1 score.
     """
     accuracy = accuracy_score(y_true, y_pred)
-    precision = precision_score(y_true, y_pred, zero_division=1)
-    recall = recall_score(y_true, y_pred, zero_division=1)
-    f1 = f1_score(y_true, y_pred, zero_division=1)
+    precision = precision_score(y_true, y_pred, zero_division=1, average='macro')
+    recall = recall_score(y_true, y_pred, zero_division=1, average='macro')
+    f1 = f1_score(y_true, y_pred, zero_division=1, average='macro')
     return accuracy, precision, recall, f1
 
 def calculate_distribution_similarity(dist1: ArrayLike, dist2: ArrayLike) -> Tuple[float, float, float]:
@@ -223,6 +223,12 @@ class TestTaker:
             dp_score: Tuple of scores for Drum Pattern Test.
         """
         self.sheet = ScoreSheet(im_score, ir_score, dp_score, self.name)
+    
+    def get_score(self):
+        """
+        Get the scores of the test.
+        """
+        return self.sheet.im_score, self.sheet.ir_score, self.sheet.dp_score
 
     def print_score(self):
         """
@@ -294,8 +300,8 @@ class Evaluator:
                 inst = TRACK2INST[idx]
                 ori = pred_insts[inst]
                 pred_insts[inst] = max(ori, int(track))
-            y_true.extend(insts)
-            y_pred.extend(pred_insts)
+            y_true.append(insts)
+            y_pred.append(pred_insts)
         self.im_true.extend(y_true), self.im_pred.extend(y_pred)
         im_score = calculate_score(y_true, y_pred)
         return im_score
@@ -337,17 +343,17 @@ class Evaluator:
             Tuple of DPTest scores: (JSD score, EMD score, cosine similarity score).
         '''
         drums: np.ndarray = taker.output.T[0]
-        dp_pred = np.zeros(12)
+        y_pred = np.zeros(12)
         if drums.any():
             num_iterations = taker.timesteps // 12
             for iter in range(num_iterations):
                 beat = drums[iter * 12:(iter + 1) * 12]
                 true_indices = np.where(beat)[0]
-                dp_pred[true_indices] += 1
-                total_sum = np.sum(dp_pred)
-            dp_dist = dp_pred / total_sum
+                y_pred[true_indices] += 1
+            total_sum = np.sum(y_pred)
+            dp_dist = y_pred / total_sum
             dp_score = calculate_distribution_similarity(DRUMDISTRIBUTION, dp_dist)
-            self.dp_pred += dp_pred
+            self.dp_pred += y_pred
         else:
             dp_score = (0, 0, 0)
         return dp_score
@@ -359,9 +365,6 @@ class Evaluator:
         Computes the scores for input match test (IMTest), input response test (IRTest), and drum pattern test (DPTest).
         If drum pattern predictions are available, it calculates the drum pattern score using distribution similarity.
         Creates a ScoreSheet object with the computed scores and assigns it to the `sheet` attribute.
-
-        Returns:
-            None
         """
         im_score = calculate_score(self.im_true, self.im_pred)
         ir_score = calculate_score(self.ir_true, self.ir_pred)
@@ -372,7 +375,16 @@ class Evaluator:
         else:
             dp_score = (0, 0, 0)
         self.sheet = ScoreSheet(im_score, ir_score, dp_score, 'Total')
-
+    
+    def get_total_score(self):
+        """
+        Get the total scores of the tests.
+        """
+        try:
+            return self.sheet.im_score, self.sheet.ir_score, self.sheet.dp_score
+        except AttributeError:
+            print('AttributeError: Please calculate total score first.')
+    
     def print_total_score(self):
         """
         Print the total score.
