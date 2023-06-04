@@ -285,7 +285,7 @@ class Evaluator:
 
     def IMTest(self, taker: TestTaker) -> Tuple[float, float, float, float]:
         '''
-        Input Match Test
+        Instrument Match Test
 
         Args:
             taker: The TestTaker object to evaluate.
