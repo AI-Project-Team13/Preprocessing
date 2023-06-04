@@ -13,21 +13,22 @@ from scipy.stats import wasserstein_distance
 import matplotlib.pyplot as plt
 
 
-def calculate_score(y_true: ArrayLike, y_pred: ArrayLike) -> Tuple[float, float, float, float]:
+def calculate_score(y_true: ArrayLike, y_pred: ArrayLike, average='macro') -> Tuple[float, float, float, float]:
     """
     Calculate accuracy, precision, recall, and F1 score.
 
     Args:
         y_true: Array of true labels.
         y_pred: Array of predicted labels.
+        average: determines the type of averaging performed on the data
 
     Returns:
         Tuple of accuracy, precision, recall, and F1 score.
     """
     accuracy = accuracy_score(y_true, y_pred)
-    precision = precision_score(y_true, y_pred, zero_division=1, average='macro')
-    recall = recall_score(y_true, y_pred, zero_division=1, average='macro')
-    f1 = f1_score(y_true, y_pred, zero_division=1, average='macro')
+    precision = precision_score(y_true, y_pred, zero_division=1, average=average)
+    recall = recall_score(y_true, y_pred, zero_division=1, average=average)
+    f1 = f1_score(y_true, y_pred, zero_division=1, average=average)
     return accuracy, precision, recall, f1
 
 def calculate_distribution_similarity(dist1: ArrayLike, dist2: ArrayLike) -> Tuple[float, float, float]:
@@ -280,12 +281,13 @@ class Evaluator:
         dp_score = self.DPTest(taker)
         taker.grade_score(im_score, ir_score, dp_score)
 
-    def IMTest(self, taker: TestTaker) -> Tuple[float, float, float, float]:
+    def IMTest(self, taker: TestTaker, average='macro') -> Tuple[float, float, float, float]:
         '''
         Input Match Test
 
         Args:
             taker: The TestTaker object to evaluate.
+            average: determines the type of averaging performed on the data when calculate score
 
         Returns:
             Tuple of IMTest scores: (accuracy, precision, recall, f1_score).
@@ -300,10 +302,14 @@ class Evaluator:
                 inst = TRACK2INST[idx]
                 ori = pred_insts[inst]
                 pred_insts[inst] = max(ori, int(track))
-            y_true.append(insts)
-            y_pred.append(pred_insts)
+            if average == 'binary':
+                y_true.extend(insts)
+                y_pred.extend(pred_insts)
+            else:
+                y_true.append(insts)
+                y_pred.append(pred_insts)
         self.im_true.extend(y_true), self.im_pred.extend(y_pred)
-        im_score = calculate_score(y_true, y_pred)
+        im_score = calculate_score(y_true, y_pred, average='macro')
         return im_score
                 
     
