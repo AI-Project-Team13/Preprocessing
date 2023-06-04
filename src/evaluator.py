@@ -269,14 +269,15 @@ class Evaluator:
         self.dp_pred = np.zeros(12)
         self.sheet: ScoreSheet = None
     
-    def __call__(self, taker: TestTaker):
+    def __call__(self, taker: TestTaker, average='macro'):
         """
         Evaluates a TestTaker object.
 
         Args:
             taker: The TestTaker object to evaluate.
+            average: determines the type of averaging performed on the data when calculate score
         """
-        im_score = self.IMTest(taker)
+        im_score = self.IMTest(taker, average=average)
         ir_score = self.IRTest(taker)
         dp_score = self.DPTest(taker)
         taker.grade_score(im_score, ir_score, dp_score)
