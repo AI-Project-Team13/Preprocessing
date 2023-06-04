@@ -335,7 +335,7 @@ class Evaluator:
             y_pred.append(predict)
 
         self.ir_true.extend(y_true), self.ir_pred.extend(y_pred)
-        ir_score = calculate_score(y_true, y_pred)
+        ir_score = calculate_score(y_true, y_pred, average = 'binary')
         return ir_score
             
     
@@ -374,7 +374,7 @@ class Evaluator:
         Creates a ScoreSheet object with the computed scores and assigns it to the `sheet` attribute.
         """
         im_score = calculate_score(self.im_true, self.im_pred, self.average)
-        ir_score = calculate_score(self.ir_true, self.ir_pred)
+        ir_score = calculate_score(self.ir_true, self.ir_pred, 'binary')
         if self.dp_pred.any():
             total_sum = np.sum(self.dp_pred)
             dp_dist = self.dp_pred / total_sum
